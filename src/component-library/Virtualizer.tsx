@@ -74,17 +74,25 @@ export const Virtualizer = React.memo<{
   const [lastVisibleColumn, setLastVisibleColumn] = useState(0);
 
   const onScroll = useCallback<React.UIEventHandler<HTMLDivElement>>(
-    ({ currentTarget }) => {
-      const { scrollTop, scrollLeft } = currentTarget;
-      setFirstVisibleRow(Math.floor(scrollTop / rowHeight));
-      setLastVisibleRow(Math.floor((scrollTop + containerHeight) / rowHeight));
-      setFirstVisibleColumn(Math.floor(scrollLeft / columnWidth));
-      setLastVisibleColumn(
-        Math.floor((scrollLeft + containerWidth) / columnWidth)
-      );
-    },
-    []
-  );
+      ({ currentTarget }) => {
+          if (
+              typeof rowHeight !== 'number' ||
+                typeof columnWidth !== 'number'
+            ) {
+                return;
+            }
+            const { scrollTop, scrollLeft } = currentTarget;
+            setFirstVisibleRow(Math.floor(scrollTop / rowHeight));
+            setLastVisibleRow(
+                Math.floor((scrollTop + containerHeight) / rowHeight)
+            );
+            setFirstVisibleColumn(Math.floor(scrollLeft / columnWidth));
+            setLastVisibleColumn(
+                Math.floor((scrollLeft + containerWidth) / columnWidth)
+            );
+        },
+        []
+    );
 
   return (
     <div
