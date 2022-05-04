@@ -69,9 +69,13 @@ export const Virtualizer = React.memo<{
           .reduce<number>((acc, _, index) => acc + columnWidth(index), 0);
 
   const [firstVisibleRow, setFirstVisibleRow] = useState(0);
-  const [lastVisibleRow, setLastVisibleRow] = useState(0);
+  const [lastVisibleRow, setLastVisibleRow] = useState(
+      typeof rowHeight === 'number' ? containerHeight / rowHeight - 1 : 0
+  );
   const [firstVisibleColumn, setFirstVisibleColumn] = useState(0);
-  const [lastVisibleColumn, setLastVisibleColumn] = useState(0);
+  const [lastVisibleColumn, setLastVisibleColumn] = useState(
+      typeof columnWidth === 'number' ? containerWidth / columnWidth - 1 : 0
+  );
 
   const onScroll = useCallback<React.UIEventHandler<HTMLDivElement>>(
       ({ currentTarget }) => {
@@ -91,67 +95,75 @@ export const Virtualizer = React.memo<{
                 Math.floor((scrollLeft + containerWidth) / columnWidth)
             );
         },
-        []
+        [rowHeight, containerWidth, containerHeight, columnWidth]
     );
 
   return (
-    <div
-      style={{
-        height: containerHeight,
-        width: containerWidth,
-        overflow: "auto",
-      }}
-      onScroll={onScroll}
-    >
       <div
-        style={{
-          position: "relative",
-          height: totalHeight,
-          width: totalWidth,
-          overflow: "hidden",
-        }}
+          style={{
+              height: containerHeight,
+              width: containerWidth,
+              overflow: 'auto',
+              position: 'relative'
+          }}
+          onScroll={onScroll}
       >
-        {new Array(lastVisibleRow + 1 - firstVisibleRow)
-          .fill(null)
-          .map((_, y) =>
-            new Array(lastVisibleColumn + 1 - firstVisibleColumn)
-              .fill(null)
-              .map((__, x) => {
-                const rowIndex = firstVisibleRow + y;
-                const columnIndex = firstVisibleColumn + x;
-                const style: React.CSSProperties = {
-                  position: "fixed",
-                  top:
-                    typeof rowHeight === "number"
-                      ? rowIndex * rowHeight
-                      : new Array(rowIndex)
+          <div
+              style={{
+                  height: totalHeight,
+                  width: totalWidth,
+                  position: 'absolute'
+              }}
+          >
+              {new Array(lastVisibleRow + 1 - firstVisibleRow)
+                  .fill(null)
+                  .map((_, y) =>
+                      new Array(lastVisibleColumn + 1 - firstVisibleColumn)
                           .fill(null)
-                          .reduce<number>(
-                            (acc, cur, index) => acc + rowHeight(index),
-                            0
-                          ),
-                  left:
-                    typeof columnWidth === "number"
-                      ? columnIndex * columnWidth
-                      : new Array(columnIndex)
-                          .fill(null)
-                          .reduce<number>(
-                            (acc, cur, index) => acc + columnWidth(index),
-                            0
-                          ),
-                  height:
-                    typeof rowHeight === "number"
-                      ? rowHeight
-                      : rowHeight(rowIndex),
-                  width:
-                    typeof columnWidth === "number"
-                      ? columnWidth
-                      : columnWidth(columnIndex),
-                };
-                return children({ rowIndex, columnIndex, style });
-              })
-          )}
+                          .map((__, x) => {
+                              const rowIndex = firstVisibleRow + y;
+                              const columnIndex = firstVisibleColumn + x;
+                              const style: React.CSSProperties = {
+                                  position: 'absolute',
+                                  top:
+                                      typeof rowHeight === 'number'
+                                          ? rowIndex * rowHeight
+                                          : new Array(rowIndex)
+                                                .fill(null)
+                                                .reduce<number>(
+                                                    (acc, cur, index) =>
+                                                        acc +
+                                                        rowHeight(index),
+                                                    0
+                                                ),
+                                  left:
+                                      typeof columnWidth === 'number'
+                                          ? columnIndex * columnWidth
+                                          : new Array(columnIndex)
+                                                .fill(null)
+                                                .reduce<number>(
+                                                    (acc, cur, index) =>
+                                                        acc +
+                                                        columnWidth(index),
+                                                    0
+                                                ),
+                                  height:
+                                      typeof rowHeight === 'number'
+                                          ? rowHeight
+                                          : rowHeight(rowIndex),
+                                  width:
+                                      typeof columnWidth === 'number'
+                                          ? columnWidth
+                                          : columnWidth(columnIndex)
+                              };
+                              return children({
+                                  rowIndex,
+                                  columnIndex,
+                                  style
+                              });
+                          })
+                  )}
+          </div>
       </div>
-    </div>
   );
 });
