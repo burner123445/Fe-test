@@ -54,7 +54,6 @@ export const Virtualizer = React.memo<{
   const containerHeight = checkNumberProp(props.containerHeight, 0);
   const containerWidth = checkNumberProp(props.containerWidth, 0);
   const children = checkFunctionProp(props.children, () => null);
-
   const totalHeight =
     typeof rowHeight === "number"
       ? numRows * rowHeight
@@ -77,10 +76,10 @@ export const Virtualizer = React.memo<{
       typeof columnWidth === 'number' ? Math.min(containerWidth / columnWidth, numColumns) - 1 : 0
   );
 
+  // So it handles the changes in input parameters 
   useEffect(() => setLastVisibleRow(
     typeof rowHeight === 'number' ? Math.min(containerHeight / rowHeight , numRows) - 1 : 0
-), [numRows, containerHeight, rowHeight]);
-
+  ), [numRows, containerHeight, rowHeight]);
   useEffect(() => setLastVisibleColumn(
     typeof columnWidth === 'number' ? Math.min(containerWidth / columnWidth, numColumns) - 1 : 0
   ), [numColumns, columnWidth, containerWidth]);
@@ -98,18 +97,23 @@ export const Virtualizer = React.memo<{
             
             const lastVisibleRowScroll = Math.floor((scrollTop + containerHeight) / rowHeight);
             const lastVisibleColumnScroll = Math.floor((scrollLeft + containerWidth) / columnWidth);
-            setFirstVisibleRow(Math.floor(scrollTop / rowHeight));
-
-            if(lastVisibleRowScroll <= numRows) {
+            const firstVisibleRowScroll = Math.floor(scrollTop / rowHeight);
+            const firstVisibleColumnScroll = Math.floor(scrollLeft / columnWidth);
+            
+            setFirstVisibleRow(firstVisibleRowScroll);
+            
+            // To avoid exceeding the input paramaters for row
+            if(lastVisibleRowScroll < numRows) {
               setLastVisibleRow(lastVisibleRowScroll);
             }
 
-            setFirstVisibleColumn(Math.floor(scrollLeft / columnWidth));
-            if(lastVisibleColumnScroll <= numColumns) {
+            setFirstVisibleColumn(firstVisibleColumnScroll);
+            // To avoid exceeding the input paramaters for column
+            if(lastVisibleColumnScroll < numColumns) {
               setLastVisibleColumn(lastVisibleColumnScroll);
             }
         },
-        [rowHeight, containerWidth, containerHeight, columnWidth]
+        [rowHeight, containerWidth, containerHeight, columnWidth, numRows, numColumns]
     );
 
   return (
@@ -129,10 +133,10 @@ export const Virtualizer = React.memo<{
                   position: 'absolute'
               }}
           >
-              {new Array(lastVisibleRow + 1 - firstVisibleRow)
+              {new Array(Math.round(lastVisibleRow + 1 - firstVisibleRow))
                   .fill(null)
                   .map((_, y) =>
-                      new Array(lastVisibleColumn + 1 - firstVisibleColumn)
+                      new Array(Math.round(lastVisibleColumn + 1 - firstVisibleColumn))
                           .fill(null)
                           .map((__, x) => {
                               const rowIndex = firstVisibleRow + y;
